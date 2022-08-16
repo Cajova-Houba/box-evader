@@ -21,18 +21,19 @@ const app = new Application({width: WIDTH, height: HEIGHT});
 document.body.appendChild(app.view);
 
 // game objects
-let player, floor, boxes, boxSpawner;
+let player, floor, boxes, boxSpawner, score;
 
 // game 'infrastructure' objects
-let gameScene, gameOverScene, state, gameOverMessage;
+let gameScene, gameOverScene, state, gameOverMessage, scoreMessage;
 
 loader.load(init);
 
 function BoxSpawner() {
     this.nextSpawn = Date.now();
     this.getNextSpawnTime = function() {
-        // next spawn is now + (500 to 1500 ms)
-        return Date.now() + 500 + Math.ceil(Math.random()*1000)
+        // next spawn is now + (250 to (1500-score) ms)
+        const upperBoundary = Math.max(0, 1250 - 4*score);
+        return Date.now() + 250 + Math.ceil(Math.random()*upperBoundary);
     };
     this.spawnIfReady = function() {
         const now = Date.now();
@@ -44,18 +45,21 @@ function BoxSpawner() {
         }
     };
     this.spawnBox = function() {
-        // from 2 to 10
-        const boxWidth = 2 + Math.ceil(Math.random() * 8);
-        // from 5 to 10
-        const boxHeight = 5 + Math.ceil(Math.random() * 5);
+        // from 10 to 50
+        const boxWidth = 10 + Math.ceil(Math.random() * 40);
+        // from 15 to 70
+        const boxHeight = 15 + Math.ceil(Math.random() * 55);
         // from 0 to WIDTH - boxWidth
         const boxX = Math.ceil(Math.random() * (WIDTH - boxWidth));
         
         let box = GameObject(boxX, 0, boxWidth, boxHeight, WHITE_COLOR);
-        // from 1 to 2;
-        box.vy = 1 + Math.random()*1;
+        // from 1 to 3;
+        box.vy = 1 + Math.random()*2;
         box.move = function() {
             this.y += this.vy;
+        };
+        box.isOutOfScreen = function() {
+            return this.y > HEIGHT;
         };
 
         return box;
@@ -116,6 +120,18 @@ function createGameOverScene() {
     return scene;
 }
 
+function createScoreDisplay() {
+    const style = new TextStyle({
+        fontFamily: "Futura",
+        fontSize: 20,
+        fill: "white"
+    });
+    let msg = new Text("0", style);
+    msg.x = 5;
+    msg.y = 5;
+    return msg;
+}
+
 function init() {
     let type = "WebGL";
     if (!PIXI.utils.isWebGLSupported()) {
@@ -126,6 +142,11 @@ function init() {
     
     gameScene = new Container();
     app.stage.addChild(gameScene);
+
+    // score display
+    score = 0;
+    scoreMessage = createScoreDisplay();
+    gameScene.addChild(scoreMessage);
 
     // add floor
     floor = createFloor();
@@ -141,10 +162,18 @@ function init() {
 
     // controls
     const left = keyboard('ArrowLeft'),
-        right = keyboard('ArrowRight');
+        right = keyboard('ArrowRight'),
+        lefta = keyboard('a'),
+        leftA = keyboard('A'),
+        rightd = keyboard('d'),
+        rightD = keyboard('D');
     
     left.press = () => {player.moveLeft()};
+    lefta.press = () => {player.moveLeft()};
+    leftA.press = () => {player.moveLeft()};
     right.press = () => {player.moveRight()};
+    rightd.press = () => {player.moveRight()};
+    rightD.press = () => {player.moveRight()};
 
     // game over scene
     gameOverScene = createGameOverScene();
@@ -175,9 +204,11 @@ function play(delta) {
     // remove boxes that are away from screen
     for (let index = boxes.length -1; index >= 0; index--) {
         const box = boxes[index];
-        if (box.y > HEIGHT) {
+        if (box.isOutOfScreen()) {
             gameScene.removeChild(box);
             boxes.splice(index, 1);
+            score++;
+            scoreMessage.text = score;
         }
     }
 
