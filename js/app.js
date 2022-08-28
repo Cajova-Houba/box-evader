@@ -69,13 +69,16 @@ function BoxSpawner() {
     }
 }
 
-function GameObject(x, y, width, height, color) {
+function GameObject(x, y, width, height, color, lineStyle) {
     let gameObj = new Graphics();
     gameObj.x = x;
     gameObj.y = y;
     gameObj.width = width;
     gameObj.height = height;
-    gameObj.beginFill(color)
+    if (lineStyle) {
+      gameObj.lineStyle(lineStyle);
+    }
+    gameObj.beginFill(color);
     gameObj.drawRect(0, 0, width, height);
     gameObj.endFill();
     return gameObj;
@@ -86,7 +89,10 @@ function createFloor() {
 }
 
 function createPlayer() {
-    let p = GameObject(PLAYER_INIT_X, PLAYER_INIT_Y, PLAYER_WIDTH, PLAYER_HEIGHT, WHITE_COLOR);
+    let p = GameObject(PLAYER_INIT_X, PLAYER_INIT_Y, 
+      PLAYER_WIDTH, PLAYER_HEIGHT, 
+      BLACK_COLOR, {width: 4, color: WHITE_COLOR, alpha: 1}
+    );
     p.hp = 100;
     p.vx = 0.0;
     p.move = function() {
