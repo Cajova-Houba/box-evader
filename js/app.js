@@ -3,7 +3,7 @@ const Application = PIXI.Application;
 const Container = PIXI.Container;
 const loader = PIXI.Loader.shared;
 const Text = PIXI.Text;
-const TextStyle = PIXI.TextStyle;
+
 
 const WHITE_COLOR = 0xFFFFFF;
 const BLACK_COLOR = 0x000000;
@@ -15,6 +15,9 @@ const PLAYER_WIDTH = 20;
 const PLAYER_HEIGHT = 50;
 const PLAYER_MAX_VX = 2;
 
+const PLAYER_INIT_X = 10;
+const PLAYER_INIT_Y = HEIGHT - 20 - PLAYER_HEIGHT;
+
 //Create a Pixi Application
 const app = new Application({width: WIDTH, height: HEIGHT});
 //Add the canvas that Pixi automatically created for you to the HTML document
@@ -24,7 +27,7 @@ document.body.appendChild(app.view);
 let player, floor, boxes, boxSpawner, score;
 
 // game 'infrastructure' objects
-let gameScene, gameOverScene, state, scoreMessage;
+let gameScene, gameOverScene, state, scoreMessage, welcomeScene;
 
 loader.load(init);
 
@@ -83,7 +86,7 @@ function createFloor() {
 }
 
 function createPlayer() {
-    let p = GameObject(10, HEIGHT - 20 - PLAYER_HEIGHT, PLAYER_WIDTH, PLAYER_HEIGHT, WHITE_COLOR);
+    let p = GameObject(PLAYER_INIT_X, PLAYER_INIT_Y, PLAYER_WIDTH, PLAYER_HEIGHT, WHITE_COLOR);
     p.hp = 100;
     p.vx = 0.0;
     p.move = function() {
@@ -95,10 +98,16 @@ function createPlayer() {
         }
     };
     p.moveRight = function() {
-        this.vx = Math.min(this.vx + 1, PLAYER_MAX_VX);
+        this.vx = Math.min(this.vx + 0.5, PLAYER_MAX_VX);
     }
     p.moveLeft = function() {
-        this.vx = Math.max(this.vx - 1, -PLAYER_MAX_VX);
+        this.vx = Math.max(this.vx - 0.5, -PLAYER_MAX_VX);
+    }
+    p.reset = function() {
+        this.hp = 100;
+        this.vx = 0.0;
+        this.x = PLAYER_INIT_X;
+        this.y = PLAYER_INIT_Y;
     }
     return p;
 }
@@ -149,10 +158,14 @@ function init() {
     });
 
     // game over scene
-    gameOverScene = createGameOverScene();
+    gameOverScene = createGameOverScene(() => {state = initGame});
     app.stage.addChild(gameOverScene);
 
-    state = play;
+    // welcome scene
+    welcomeScene = createWelcomeScene(() => {state = initGame});
+    app.stage.addChild(welcomeScene);
+
+    state = welcome;
 
     // game loop
     app.ticker.add((delta) => gameLoop(delta));
@@ -160,6 +173,34 @@ function init() {
 
 function gameLoop(delta) {
     state(delta);
+}
+
+function welcome() {
+    gameScene.visible = false;
+    gameOverScene.visible = false;
+    welcomeScene.visible = true;
+}
+
+function initGame() {
+  // reset player 
+  player.reset();
+
+  // reset score
+  updateScore(0);
+
+  // remove boxes if any
+  for(let index = boxes.length - 1; index >= 0; index--) {
+      const box = boxes[index];
+      gameScene.removeChild(box);
+  }
+  boxes = new Array();
+  
+  // setup ui
+  gameScene.visible = true;
+  gameOverScene.visible = false;
+  welcomeScene.visible = false;
+  
+  state = play;
 }
 
 function play(delta) {
@@ -180,8 +221,7 @@ function play(delta) {
         if (box.isOutOfScreen()) {
             gameScene.removeChild(box);
             boxes.splice(index, 1);
-            score++;
-            scoreMessage.text = score;
+            updateScore(score+1);
         }
     }
 
@@ -199,4 +239,9 @@ function play(delta) {
 function end() {
     gameScene.visible = false;
     gameOverScene.visible = true;
-  }
+}
+
+function updateScore(newScore) {
+  score = newScore;
+  scoreMessage.text = score;
+}

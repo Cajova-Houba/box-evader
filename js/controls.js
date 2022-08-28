@@ -53,3 +53,7 @@ function keyboard(value) {
     
     return key;
   }
+
+function onLeftMouseClick(callback) {
+    window.addEventListener("click", callback, false);
+}
