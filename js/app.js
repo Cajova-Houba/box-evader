@@ -287,7 +287,9 @@ function play(delta) {
 
 function end() {
     gameScene.visible = false;
+    gameOverScene.showScore(score);
     gameOverScene.visible = true;
+    welcomeScene.visible = false;
 }
 
 function updateScore(newScore) {
