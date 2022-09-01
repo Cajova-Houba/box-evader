@@ -14,6 +14,9 @@ const HEIGHT = 256;
 const PLAYER_WIDTH = 20;
 const PLAYER_HEIGHT = 50;
 const PLAYER_MAX_VX = 2;
+// in ms
+const PLAYER_MOVEMENT_DELAY = 10;
+const PLAYER_VX = 5;
 
 const PLAYER_INIT_X = 10;
 const PLAYER_INIT_Y = HEIGHT - 20 - PLAYER_HEIGHT;
@@ -95,19 +98,45 @@ function createPlayer() {
     );
     p.hp = 100;
     p.vx = 0.0;
+    p.lastMove = -1;
+
+    /**
+     * Actual movement. Called once per game loop.
+     * @returns Nothing
+     */
     p.move = function() {
+        const now = Date.now();
+        if ((now - this.lastMove) < PLAYER_MOVEMENT_DELAY) {
+            return;
+        }
         this.x += this.vx;
+        this.lastMove = now;
         if (this.x < 0) {
             this.x = 0;
         } else if (this.x > (WIDTH - PLAYER_WIDTH)) {
             this.x = (WIDTH - PLAYER_WIDTH);
         }
     };
+
+
+    /**
+     * Sets player's movement direction to right.
+     */
     p.moveRight = function() {
-        this.vx = Math.min(this.vx + 0.5, PLAYER_MAX_VX);
+        this.vx = PLAYER_VX;
     }
+    /**
+     * Sets player's movement direction to left.
+     */
     p.moveLeft = function() {
-        this.vx = Math.max(this.vx - 0.5, -PLAYER_MAX_VX);
+        this.vx = -PLAYER_VX;
+    }
+    /**
+     * Sets player's movement direction to 0, thus stopping
+     * the movement.
+     */
+    p.stopMovement = function() {
+        this.vx = 0;
     }
     p.reset = function() {
         this.hp = 100;
@@ -157,10 +186,12 @@ function init() {
     [left, lefta, leftA].forEach(k => {
       k.press = () => {player.moveLeft()}
       k.hold = () => {player.moveLeft()}
+      k.release = () => {player.stopMovement()}
     });
     [right, rightd, rightD].forEach(k => {
       k.press = () => {player.moveRight()}
       k.hold = () => {player.moveRight()}
+      k.release = () => {player.stopMovement()}
     });
 
     // game over scene
