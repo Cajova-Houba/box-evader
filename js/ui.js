@@ -27,8 +27,8 @@ function createWelcomeScene(startGame) {
     // nice line used for aesthetics and measurements
     const line = new Graphics();
     line.lineStyle({width: 2, color: 0xFFFFFF, alpha: 1});
-    line.moveTo((WIDTH - textWidth) / 2.0, 60);
-    line.lineTo((WIDTH + textWidth) / 2.0, 60);
+    line.moveTo((WIDTH - textWidth) / 2.0, (HEIGHT / 2) - 60);
+    line.lineTo((WIDTH + textWidth) / 2.0, (HEIGHT / 2) - 60);
     line.x = 0;
     line.y = 0;
     scene.addChild(line);

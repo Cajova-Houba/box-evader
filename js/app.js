@@ -9,7 +9,7 @@ const WHITE_COLOR = 0xFFFFFF;
 const BLACK_COLOR = 0x000000;
 
 const WIDTH = 512;
-const HEIGHT = 256;
+const HEIGHT = 400;
 
 const PLAYER_WIDTH = 20;
 const PLAYER_HEIGHT = 50;
@@ -20,6 +20,18 @@ const PLAYER_VX = 5;
 
 const PLAYER_INIT_X = 10;
 const PLAYER_INIT_Y = HEIGHT - 20 - PLAYER_HEIGHT;
+
+/**
+ * How much does the score affect the spawn rate. Bigger number means
+ * faster spawns.
+ */
+const SCORE_SPAWN_MODIFIER = 10;
+
+/**
+ * How much does score affect the upper boundary of random speed of spawned boxes.
+ * You probably want to keep it <0.5 otherwise the game gets hard pretty quickly.
+ */
+const SCORE_BOX_VY_MODIFIER = 0.075;
 
 //Create a Pixi Application
 const app = new Application({width: WIDTH, height: HEIGHT});
@@ -37,9 +49,9 @@ loader.load(init);
 function BoxSpawner() {
     this.nextSpawn = Date.now();
     this.getNextSpawnTime = function() {
-        // next spawn is now + (250 to (1500-score) ms)
-        const upperBoundary = Math.max(0, 1250 - 4*score);
-        return Date.now() + 250 + Math.ceil(Math.random()*upperBoundary);
+        // next spawn is now + (50 to (1500-score) ms)
+        const upperBoundary = Math.max(0, 1450 - SCORE_SPAWN_MODIFIER*score);
+        return Date.now() + 50 + Math.ceil(Math.random()*upperBoundary);
     };
     this.spawnIfReady = function() {
         const now = Date.now();
@@ -59,8 +71,8 @@ function BoxSpawner() {
         const boxX = Math.ceil(Math.random() * (WIDTH - boxWidth));
         
         let box = GameObject(boxX, 0, boxWidth, boxHeight, WHITE_COLOR);
-        // from 1 to 3;
-        box.vy = 1 + Math.random()*2;
+        // from 1 to 3 + score modifier;
+        box.vy = 1 + Math.random()*2 + score*SCORE_BOX_VY_MODIFIER;
         box.move = function() {
             this.y += this.vy;
         };
