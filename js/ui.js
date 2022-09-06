@@ -1,4 +1,5 @@
 const TextStyle = PIXI.TextStyle;
+const DATE_FORMATTER = Intl.DateTimeFormat();
 
 const BIG_TEXT_STYLE = new TextStyle({
     fontFamily: "Futura",

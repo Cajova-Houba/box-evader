@@ -34,9 +34,13 @@ const SCORE_SPAWN_MODIFIER = 10;
 const SCORE_BOX_VY_MODIFIER = 0.075;
 
 //Create a Pixi Application
-const app = new Application({width: WIDTH, height: HEIGHT});
+const app = new Application({
+    width: WIDTH, 
+    height: HEIGHT, 
+    view: document.getElementById("gameCanvas")
+});
 //Add the canvas that Pixi automatically created for you to the HTML document
-document.body.appendChild(app.view);
+// document.body.appendChild(app.view);
 
 // game objects
 let player, floor, boxes, boxSpawner, score;
@@ -214,7 +218,7 @@ function init() {
     welcomeScene = createWelcomeScene(() => {state = initGame});
     app.stage.addChild(welcomeScene);
 
-    state = welcome;
+    state = preWelcome;
 
     // game loop
     app.ticker.add((delta) => gameLoop(delta));
@@ -222,6 +226,14 @@ function init() {
 
 function gameLoop(delta) {
     state(delta);
+}
+
+/**
+ * Stuff that should be in the welcome() but we want it to run only once.
+ */
+function preWelcome() {
+    updateHighScoreTable();
+    state = welcome;
 }
 
 function welcome() {
@@ -279,10 +291,19 @@ function play(delta) {
         const box = boxes[index];
         if (hitTestRectangle(player, box)) {
             console.log("Collision with box");
-            state = end;
+            state = preEnd;
             break;
         }
     }
+}
+
+/**
+ * Stuff that should be in end() but we want it to run only once.
+ */
+function preEnd() {
+    storeScore(score);
+    updateHighScoreTable()
+    state = end
 }
 
 function end() {
